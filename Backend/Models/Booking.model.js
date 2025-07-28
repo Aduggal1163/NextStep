@@ -31,11 +31,11 @@ const bookingSchema = new mongoose.Schema({
     },
     vendors: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Vendor', // assumes you have a Vendor model
+        ref: 'Vendor',
     }],
     destinationId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Destination', // assumes you have a Destination model
+        ref: 'Destination',
         required: true,
     },
 })
