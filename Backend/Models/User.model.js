@@ -20,8 +20,8 @@ const userSchema = new mongoose.Schema({
         minLength: 10
     },
     role:{
-        enum:['user','admin','planner','vendor'],
         type: String,
+        enum:['user','admin','planner','vendor'],
         default: 'user',
     },
     weddingPlan:{
