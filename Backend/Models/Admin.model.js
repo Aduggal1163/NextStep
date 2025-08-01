@@ -12,7 +12,12 @@ const AdminSchema=new mongoose.Schema({
         type: String,
         required: true,
         minLength: 8,
-        maxLength: 30,
+        maxLength: 100,
+    },
+    contactDetails:{
+        type:Number,
+        required: true,
+        minLength: 10
     },
     role:{
         type: String,
