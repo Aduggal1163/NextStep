@@ -18,7 +18,7 @@ const AdminSchema=new mongoose.Schema({
     contactDetails:{
         type:Number,
         required: true,
-        minLength: 10
+        minLength: 10,
     },
     role:{
         type: String,

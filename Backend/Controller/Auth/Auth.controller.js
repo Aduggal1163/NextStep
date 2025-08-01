@@ -45,6 +45,20 @@ export const SignupController = async (req, res) => {
         message: "Admin already exist",
       });
     }
+
+    let contactStr = contactDetails.toString();
+    const leadingZeros = contactStr.match(/^0+/g);
+    const zeroCount = leadingZeros ? leadingZeros[0].length : 0;
+
+    if (contactStr.length === 10 && /^[1-9]\d{9}$/.test(contactStr)) {
+    } else if (contactStr.length === 11 && zeroCount === 1 && /^[0][1-9]\d{9}$/.test(contactStr)) {
+      contactStr = contactStr.slice(1);
+    }else{
+        return res.status(400).json({
+        message: "Invalid contact number",
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     let newUser;
     if (role === "user") {
