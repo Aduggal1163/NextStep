@@ -1,12 +1,13 @@
-import User from "../../Models/User.model.js";
-import Admin from "../../Models/Admin.model.js";
-import Planner from "../../Models/Planner.model.js";
-import Vendor from "../../Models/Vendor.model.js";
+import User from "../Models/User.model.js";
+import Admin from "../Models/Admin.model.js";
+import Planner from "../Models/Planner.model.js";
+import Vendor from "../Models/Vendor.model.js";
 import bcrypt from 'bcryptjs';
 import dotenv from "dotenv";
 import jwt from 'jsonwebtoken'
-import Service from "../../Models/Service.model.js";
+import Service from "../Models/Service.model.js";
 dotenv.config();
+
 export const SignupController = async (req, res) => {
   try {
     const { username, adminName, plannerName, email, password, contactDetails, role,servicesOffered } = req.body;
@@ -235,6 +236,7 @@ export const SigninController = async (req, res) => {
     return res.status(500).json({ message: "SignIN Server error" });
   }
 };
+
 export const passwordReset = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
