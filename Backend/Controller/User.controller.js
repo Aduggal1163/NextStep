@@ -57,6 +57,37 @@ export const guestDetails = async (req, res) => {
   }
 };
 
+export const getAllPlanners=async(req,res)=>{
+    try {
+        const userId=req.user?.id;
+        if(!userId)
+        {
+            return res.status(400).json({
+                message:"UserId is missing"
+            })
+        }
+        const listofallplanners=await Planner.find().select("-password");
+        if(listofallplanners<1)
+        {
+            return res.status(400).json({
+                message:"No planner",
+                planner:[]
+            })
+        }
+        return res.status(200).json({
+            message:"Here are the list of all Planner",
+            planner:listofallplanners,
+            count:listofallplanners.length
+        })
+        
+    } catch (error) {
+        console.log("Error in fetching planner");
+        return res.status(500).json({
+            message:"Server error in getallplanner"
+      })
+   }
+}
+
 export const getAllVendors = async (req, res) => {
   try {
     const userId = req.user?.id;

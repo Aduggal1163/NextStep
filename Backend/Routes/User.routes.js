@@ -1,11 +1,12 @@
 import {Router} from 'express';
-import { addReview, deleteReview, getAllVendors, guestDetails, profile, updateProfile} from '../Controller/User.controller.js';
+import { addReview, deleteReview, getAllPlanners, getAllVendors, guestDetails, profile, updateProfile} from '../Controller/User.controller.js';
 import {requireSignIn} from '../Middlewares/auth.middleware.js';
 const router=Router();
 router.post("/getProfile", requireSignIn, profile);
 router.post("/updateProfile", requireSignIn, updateProfile);
 router.post("/submitGuestDetails",requireSignIn,guestDetails);
 router.get("/allVendors",requireSignIn,getAllVendors);
+router.get("/allPlanner",requireSignIn,getAllPlanners);
 router.post("/add",requireSignIn, addReview);
 router.delete("/:reviewId", deleteReview);
 export default router;
