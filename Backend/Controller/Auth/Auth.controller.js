@@ -223,3 +223,45 @@ export const SigninController = async (req, res) => {
     return res.status(500).json({ message: "SignIN Server error" });
   }
 };
+export const passwordReset = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const { id, role } = req.user;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "Please provide both current and new passwords" });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ message: "New password must be at least 8 characters long" });
+    }
+
+    let userModel;
+    if (role === 'user') userModel = User;
+    else if (role === 'admin') userModel = Admin;
+    else if (role === 'planner') userModel = Planner;
+    else if (role === 'vendor') userModel = Vendor;
+    else {
+      return res.status(400).json({ message: "Invalid role" });
+    }
+
+    const existingUser = await userModel.findById(id);
+    if (!existingUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(currentPassword, existingUser.password);
+    if (!isPasswordCorrect) {
+      return res.status(401).json({ message: "Current password is incorrect" });
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    existingUser.password = hashedNewPassword;
+    await existingUser.save();
+
+    return res.status(200).json({ message: "Password reset successful" });
+  } catch (error) {
+    console.log(error, "passwordReset Error");
+    return res.status(500).json({ message: "Password Reset Server Error" });
+  }
+};
