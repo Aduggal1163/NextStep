@@ -42,3 +42,5 @@ const WeddingPlanSchema = new mongoose.Schema({
         default: 'Planning',
     }
 },{timestamps: true});
+const WeddingPlan=mongoose.model("WeddingPlan",WeddingPlanSchema);
+export default WeddingPlan
