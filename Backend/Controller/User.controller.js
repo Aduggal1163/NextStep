@@ -159,7 +159,7 @@ export const deleteReview = async (req, res) => {
   }
 };
 
-export const profile = async (req, res) => {
+export const getProfile = async (req, res) => {
   try {
     const { emailOrUserName } = req.body;
     if (!emailOrUserName) {

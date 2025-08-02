@@ -11,7 +11,7 @@ const destinationSchema = new mongoose.Schema({
   },
   style: {
     type: String,
-    enum:['Beach', 'Traditional', 'Royal', 'Modern'],
+    enum:["Beach", "Traditional", "Royal", "Modern"],
     required: true,
   },
   availableDates: {
