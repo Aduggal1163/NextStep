@@ -5,10 +5,11 @@ import Vendor from "../../Models/Vendor.model.js";
 import bcrypt from 'bcryptjs';
 import dotenv from "dotenv";
 import jwt from 'jsonwebtoken'
+import Service from "../../Models/Service.model.js";
 dotenv.config();
 export const SignupController = async (req, res) => {
   try {
-    const { username, adminName, plannerName, email, password, contactDetails, role } = req.body;
+    const { username, adminName, plannerName, email, password, contactDetails, role,servicesOffered } = req.body;
     if (!(username || adminName || plannerName)|| !email || !password || !role || !contactDetails) {
       return res.status(400).json({
         message: "Please fill all the mendatory fields",
@@ -78,13 +79,24 @@ export const SignupController = async (req, res) => {
         role,
       });
     } else if (role === "vendor") {
-      newUser = await Vendor.create({
-        username,
-        email,
-        password: hashedPassword,
-        role,
-      });
-    } else if (role === "admin") {
+      newUser = await Vendor.create({ username, email, password: hashedPassword, contactDetails, role });
+
+      // Handle vendor services if provided
+      if (Array.isArray(servicesOffered) && servicesOffered.length > 0) {
+        const createdServices = await Promise.all(
+          servicesOffered.map(async (service) => {
+            return await Service.create({
+              type: service.type,
+              description: service.description,
+              price: service.price,
+              vendorId: newUser._id
+            });
+          })
+        );
+        newUser.servicesOffered = createdServices.map(s => s._id);
+        await newUser.save();
+      }
+    }else if (role === "admin") {
       newUser = await Admin.create({
         adminName,
         email,

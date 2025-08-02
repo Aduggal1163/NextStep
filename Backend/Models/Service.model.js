@@ -3,7 +3,7 @@ const serviceSchema = new mongoose.Schema({
     type:{
         type: String,
         required: true,
-        enum: ['decor', 'makeup', 'food', 'photography', 'music', 'transport', 'other'],
+        enum: ['decor', 'makeup', 'food', 'photography', 'music', 'transport', 'lighting', 'other'],
     },
     description:{
         type: String,
@@ -16,7 +16,6 @@ const serviceSchema = new mongoose.Schema({
     vendorId:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Vendor',
-        required: true,
     }
 },{timestamps: true});
 
