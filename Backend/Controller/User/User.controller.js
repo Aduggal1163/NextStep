@@ -1,6 +1,7 @@
 import GuestDetails from "../../Models/GuestDetails.model.js";
 import Vendor from "../../Models/Vendor.model.js";
 import Review from '../../Models/Review.model.js'
+import Planner from "../../Models/Planner.model.js";
 export const guestDetails = async (req, res) => {
   try {
     const { guestList, totalGuests, notes } = req.body;
@@ -76,6 +77,37 @@ export const getAllVendors= async(req,res)=>{
     } catch (error) {
         console.log("Error in getAllVendors ",error);
         res.status(500).json({message:"Something went wrong in getAllVendors"});
+    }
+}
+
+export const getAllPlanners=async(req,res)=>{
+    try {
+        const userId=req.user?.id;
+        if(!userId)
+        {
+            return res.status(400).json({
+                message:"UserId is missing"
+            })
+        }
+        const listofallplanners=await Planner.find().select("-password");
+        if(listofallplanners<1)
+        {
+            return res.status(400).json({
+                message:"No planner",
+                planner:[]
+            })
+        }
+        return res.status(200).json({
+            message:"Here are the list of all Planner",
+            planner:listofallplanners,
+            count:listofallplanners.length
+        })
+        
+    } catch (error) {
+        console.log("Error in fetching planner");
+        return res.status(500).json({
+            message:"Server error in getallplanner"
+        })
     }
 }
 

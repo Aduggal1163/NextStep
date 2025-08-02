@@ -8,12 +8,10 @@ const bookingSchema = new mongoose.Schema({
     plannerId:{
         type: mongoose.Schema.Type.ObjectId,
         ref: 'Planner',
-        required: true,
     },
     packageId:{
         type: mongoose.Schema.Type.ObjectId,
         ref: 'Package',
-        required: true,
     },
     date:{
         type: date,
