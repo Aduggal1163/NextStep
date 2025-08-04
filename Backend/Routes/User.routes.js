@@ -1,10 +1,11 @@
 import {Router} from 'express';
-import { addReview, deleteReview, getAllPlanners, getAllVendors, guestDetails, getProfile, updateProfile} from '../Controller/User.controller.js';
+import { addReview, deleteReview, getAllPlanners, getAllVendors, guestDetails, getProfile, updateProfile, createWeddingPlan} from '../Controller/User.controller.js';
 import {requireSignIn} from '../Middlewares/auth.middleware.js';
 const router=Router();
 router.post("/getProfile", requireSignIn, getProfile);
 router.post("/updateProfile", requireSignIn, updateProfile);
 router.post("/submitGuestDetails",requireSignIn,guestDetails);
+router.post("/createWeddingPlan",requireSignIn,createWeddingPlan);
 router.get("/allVendors",requireSignIn,getAllVendors);
 router.get("/allPlanner",requireSignIn,getAllPlanners);
 router.post("/add",requireSignIn, addReview);

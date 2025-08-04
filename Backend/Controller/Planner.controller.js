@@ -31,7 +31,7 @@ export const createDestination = async (req, res) => {
       availableDates: parsedDates,
       priceRange
     });
-
+    await destination.save();
     return res.status(201).json({ message: "Destination created successfully", destination });
 
   } catch (error) {

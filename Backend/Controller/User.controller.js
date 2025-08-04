@@ -2,6 +2,7 @@ import GuestDetails from "../Models/GuestDetails.model.js";
 import Vendor from "../Models/Vendor.model.js";
 import Review from "../Models/Review.model.js";
 import User from "../Models/User.model.js";
+import WeddingPlan from "../Models/WeddingPlan.model.js";
 
 export const guestDetails = async (req, res) => {
   try {
@@ -57,36 +58,33 @@ export const guestDetails = async (req, res) => {
   }
 };
 
-export const getAllPlanners=async(req,res)=>{
-    try {
-        const userId=req.user?.id;
-        if(!userId)
-        {
-            return res.status(400).json({
-                message:"UserId is missing"
-            })
-        }
-        const listofallplanners=await Planner.find().select("-password");
-        if(listofallplanners<1)
-        {
-            return res.status(400).json({
-                message:"No planner",
-                planner:[]
-            })
-        }
-        return res.status(200).json({
-            message:"Here are the list of all Planner",
-            planner:listofallplanners,
-            count:listofallplanners.length
-        })
-        
-    } catch (error) {
-        console.log("Error in fetching planner");
-        return res.status(500).json({
-            message:"Server error in getallplanner"
-      })
-   }
-}
+export const getAllPlanners = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(400).json({
+        message: "UserId is missing",
+      });
+    }
+    const listofallplanners = await Planner.find().select("-password");
+    if (listofallplanners < 1) {
+      return res.status(400).json({
+        message: "No planner",
+        planner: [],
+      });
+    }
+    return res.status(200).json({
+      message: "Here are the list of all Planner",
+      planner: listofallplanners,
+      count: listofallplanners.length,
+    });
+  } catch (error) {
+    console.log("Error in fetching planner");
+    return res.status(500).json({
+      message: "Server error in getallplanner",
+    });
+  }
+};
 
 export const getAllVendors = async (req, res) => {
   try {
@@ -191,8 +189,8 @@ export const updateProfile = async (req, res) => {
     $or: [{ email: emailOrUserName }, { username: emailOrUserName }],
   });
 
-  if (prevData == updateData){
-      return res.status(400).json({message: "Same data found"});
+  if (prevData == updateData) {
+    return res.status(400).json({ message: "Same data found" });
   }
 
   if (!user) {
@@ -201,7 +199,7 @@ export const updateProfile = async (req, res) => {
     if (prevData === user.email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(updateData)) {
-        return res.status(400).json({ message: "Invalid email provide"});
+        return res.status(400).json({ message: "Invalid email provide" });
       }
       const updateUser = await User.findOneAndUpdate(
         { email: prevData },
@@ -210,9 +208,8 @@ export const updateProfile = async (req, res) => {
       );
       return res.status(200).json({
         message: "User updated successfully",
-        user: updateUser
+        user: updateUser,
       });
-
     } else if (prevData === user.username) {
       const updateUser = await User.findOneAndUpdate(
         { username: prevData },
@@ -221,9 +218,8 @@ export const updateProfile = async (req, res) => {
       );
       return res.status(200).json({
         message: "User updated successfully",
-        user: updateUser
+        user: updateUser,
       });
-
     } else if (prevData === user.contactDetails) {
       let contactStr = updateData.toString();
       const leadingZeros = contactStr.match(/^0+/g);
@@ -236,7 +232,7 @@ export const updateProfile = async (req, res) => {
         /^[0][1-9]\d{9}$/.test(contactStr)
       ) {
         contactStr = contactStr.slice(1);
-      }else {
+      } else {
         return res.status(400).json({
           message: "Invalid contact number",
         });
@@ -249,11 +245,55 @@ export const updateProfile = async (req, res) => {
       );
       return res.status(200).json({
         message: "User updated successfully",
-        user: updateUser
+        user: updateUser,
       });
-
-    } else{
-      return res.status(400).json({message: "Invalid data provided"});
+    } else {
+      return res.status(400).json({ message: "Invalid data provided" });
     }
+  }
+};
+
+export const createWeddingPlan = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+
+    if (userRole !== "user") {
+      return res.status(401).json({ message: "Unauthorized"});
+    }
+
+    const {
+      destination,
+      customServices = [],
+      budget,
+      guestDetails = [],
+      weddingDate,
+    } = req.body;
+
+    if (!destination || !budget || !weddingDate) {
+      return res.status(400).json({ message: "Required missing field" });
+    }
+
+    if (!Array.isArray(customServices) || !Array.isArray(guestDetails)) {
+      return res.status(400).json({ message: "customServices and guestDetails must be arrays" });
+    }
+
+    const newPlan = new WeddingPlan({
+      userId,
+      destination,
+      customServices,
+      budget,
+      guestDetails,
+      weddingDate: new Date(weddingDate),
+    });
+    await newPlan.save();
+    return res
+      .status(201)
+      .json({ message: "wedding plan created successfully", plan: newPlan });
+  } catch (error) {
+    console.error("wedding plan create error:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error while planning wedding" });
   }
 };
