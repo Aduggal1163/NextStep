@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const plannerSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
   plannerName: {
     type: String,
     required: true,

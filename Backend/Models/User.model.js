@@ -37,6 +37,10 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Review',
     }],
+    vendorsList:[{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Vendor'
+    }]
 },{timestamps: true});
 const User = mongoose.model('User', userSchema);
 export default User;

@@ -1,5 +1,9 @@
 import mongoose from "mongoose";
 const packageSchema = new mongoose.Schema({
+    plannerId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "planner"
+    },
     title:{
         type: String,
         required: true,

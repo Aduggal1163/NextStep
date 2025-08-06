@@ -1,4 +1,7 @@
 import Destination from "../Models/Destination.model.js";
+import Vendor from "../Models/Vendor.model.js";
+import WeddingPlan from "../Models/WeddingPlan.model.js";
+import User from '../Models/User.model.js';
 
 export const createDestination = async (req, res) => {
   try {
@@ -49,3 +52,83 @@ export const allDestination = async(req, res) =>{
         return res.status(500).json({ message: "Server error while fetching destinations" });
     }
 }
+
+export const allVendors = async(req, res) =>{
+    try {
+      const role = req.user?.role;
+      if (role !== "planner"){
+        return res.status(400).json({message: "Unauthorized" });
+      }
+
+      const vendors = await Vendor.find();
+      if (!vendors){
+        return res.status(400).json({message: "No vendor found"});
+      }
+      return res.status(200).json(vendors);
+    } catch (error) {
+      console.error("Get all vendors error:", error);
+      return res.status(500).json({ message: "Server error while fetching vendors"});
+    }
+}
+
+export const allUsers = async(req, res) =>{
+  try {
+    const weddingPlans = await WeddingPlan.find({userId: req.user?.id});
+    res.status(200).json(weddingPlans);
+
+  } catch (error) {
+      console.error("Wedding plan users error:", error);
+      res.status(500).json({message: "Server error while fetching wedding users"})
+  }
+}
+
+export const assignVendorsToUser = async (req, res) => {
+  try {
+    const { userId, vendorIds } = req.body;
+    const role = req.user?.role;
+
+    if (!["planner", "admin"].includes(role)) {
+      return res.status(403).json({ message: "Unauthorized access" });
+    }
+
+    if (!userId || !Array.isArray(vendorIds) || vendorIds.length === 0) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const vendors = await Vendor.find({ _id: { $in: vendorIds } });
+    if (vendors.length !== vendorIds.length) {
+      return res.status(400).json({ message: "One or more vendors not found" });
+    }
+
+    const existingVendorIds = user.vendorsList.map(id => id.toString());
+
+    const alreadyAssigned = [];
+    const newlyAssigned = [];
+
+    for (let id of vendorIds) {
+      const strId = id.toString();
+      if (existingVendorIds.includes(strId)) {
+        alreadyAssigned.push(strId);
+      } else {
+        newlyAssigned.push(strId);
+      }
+    }
+
+    user.vendorsList.push(...newlyAssigned);
+    await user.save();
+
+    return res.status(200).json({
+      message: "Vendor assignment completed",
+      newlyAssigned,
+      alreadyAssigned,
+      finalVendorList: user.vendorsList
+    });
+
+  } catch (error) {
+    console.error("Assign Vendors Error:", error);
+    res.status(500).json({ message: "Server error while assigning vendors" });
+  }
+};
