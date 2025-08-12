@@ -1,7 +1,7 @@
 import GuestDetails from "../Models/GuestDetails.model.js";
 import Vendor from "../Models/Vendor.model.js";
-import Review from "../Models/Review.model.js";
 import User from "../Models/User.model.js";
+import Planner from "../Models/Planner.model.js";
 import WeddingPlan from "../Models/WeddingPlan.model.js";
 
 export const guestDetails = async (req, res) => {
@@ -113,50 +113,6 @@ export const getAllVendors = async (req, res) => {
   }
 };
 
-export const addReview = async (req, res) => {
-  try {
-    const { userId, targetId, targetType, rating, comment } = req.body;
-
-    if (!userId || !targetId || !targetType || !rating) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    const review = new Review({
-      userId,
-      targetId,
-      targetType,
-      rating,
-      comment,
-    });
-
-    await review.save();
-
-    return res
-      .status(201)
-      .json({ message: "Review added successfully", review });
-  } catch (error) {
-    console.error("Add Review Error:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
-export const deleteReview = async (req, res) => {
-  try {
-    const { reviewId } = req.params;
-
-    const deletedReview = await Review.findByIdAndDelete(reviewId);
-
-    if (!deletedReview) {
-      return res.status(404).json({ message: "Review not found" });
-    }
-
-    return res.status(200).json({ message: "Review deleted successfully" });
-  } catch (error) {
-    console.error("Delete Review Error:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
 export const getProfile = async (req, res) => {
   try {
     const { emailOrUserName } = req.body;
@@ -259,7 +215,7 @@ export const createWeddingPlan = async (req, res) => {
     const userRole = req.user?.role;
 
     if (userRole !== "user") {
-      return res.status(401).json({ message: "Unauthorized"});
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
     const {
@@ -275,7 +231,9 @@ export const createWeddingPlan = async (req, res) => {
     }
 
     if (!Array.isArray(customServices) || !Array.isArray(guestDetails)) {
-      return res.status(400).json({ message: "customServices and guestDetails must be arrays" });
+      return res
+        .status(400)
+        .json({ message: "customServices and guestDetails must be arrays" });
     }
 
     const newPlan = new WeddingPlan({
@@ -297,3 +255,80 @@ export const createWeddingPlan = async (req, res) => {
       .json({ message: "Server error while planning wedding" });
   }
 };
+
+export const assignPlannerAndUpdate = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { id: plannerId } = req.params;
+
+    if (!plannerId) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const user = await User.findById(userId);
+    const planner = await Planner.findById(plannerId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!planner) {
+      return res.status(404).json({ message: "Planner not found" });
+    }
+
+    if (user.plannerId && user.plannerId.some(id => id.toString() === plannerId)) {
+      return res.status(400).json({ message: "Planner already assigned to this user" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $addToSet: { plannerId } },
+      { new: true }
+    );
+
+    return res
+      .status(200)
+      .json({ message: "Planner assigned successfully", updatedUser });
+
+  } catch (error) {
+    console.error("Planner assign error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+export const removePlanner = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { id: plannerId } = req.params;
+
+    if (!plannerId) {
+      return res.status(400).json({ message: "Missing planner ID" });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "Not a valid user" });
+    }
+
+    if (!user.plannerId || !user.plannerId.some(id => id.toString() === plannerId)) {
+      return res.status(400).json({ message: "Planner not assigned to this user" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $pull: { plannerId } },
+      { new: true }
+    );
+
+    return res
+      .status(200)
+      .json({ message: "Planner removed successfully", updatedUser });
+
+  } catch (error) {
+    console.error("Planner remove error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+

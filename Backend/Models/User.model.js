@@ -1,46 +1,47 @@
-import mongoose from 'mongoose';
-const userSchema = new mongoose.Schema({
+import mongoose from "mongoose";
+const userSchema = new mongoose.Schema(
+  {
+    plannerId: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Planner",
+    }],
     username: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
-    email:{
-        type: String,
-        required: true,
-        unique: true,
+    email: {
+      type: String,
+      required: true,
+      unique: true,
     },
-    password:{
-        type: String,
-        required: true,
-        minLength: 8,
-        maxLength: 100,
+    password: {
+      type: String,
+      required: true,
+      minLength: 8,
+      maxLength: 100,
     },
-    contactDetails:{
-        type:Number,
-        required: true,
-        minLength: 10
+    contactDetails: {
+      type: Number,
+      required: true,
+      minLength: 10,
     },
-    role:{
-        type: String,
-        enum:['user','admin','planner','vendor'],
-        default: 'user',
+    role: {
+      type: String,
+      enum: ["user", "admin", "planner", "vendor"],
+      default: "user",
     },
-    weddingPlan:{
+    weddingPlan: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "WeddingPlan",
+    },
+    paymentHistory: [
+      {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'WeddingPlan',
-    },
-    paymentHistory:[{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'PaymentHistory',
-    }],
-    reviews:[{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Review',
-    }],
-    vendorsList:[{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Vendor'
-    }]
-},{timestamps: true});
-const User = mongoose.model('User', userSchema);
+        ref: "PaymentHistory",
+      },
+    ],
+  },
+  { timestamps: true }
+);
+const User = mongoose.model("User", userSchema);
 export default User;

@@ -2,16 +2,32 @@ import User from "../Models/User.model.js";
 import Admin from "../Models/Admin.model.js";
 import Planner from "../Models/Planner.model.js";
 import Vendor from "../Models/Vendor.model.js";
-import bcrypt from 'bcryptjs';
+import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
-import jwt from 'jsonwebtoken'
-import Service from "../Models/Service.model.js";
+import jwt from "jsonwebtoken";
+// import Service from "../Models/Service.model.js";
 dotenv.config();
 
 export const SignupController = async (req, res) => {
   try {
-    const { username, adminName, plannerName, email, password, contactDetails, role,servicesOffered } = req.body;
-    if (!(username || adminName || plannerName)|| !email || !password || !role || !contactDetails) {
+    const {
+      username,
+      adminName,
+      plannerName,
+      email,
+      password,
+      contactDetails,
+      role,
+      serviceOffered,
+      price,
+    } = req.body;
+    if (
+      !(username || adminName || plannerName) ||
+      !email ||
+      !password ||
+      !role ||
+      !contactDetails
+    ) {
       return res.status(400).json({
         message: "Please fill all the mendatory fields",
       });
@@ -53,10 +69,14 @@ export const SignupController = async (req, res) => {
     const zeroCount = leadingZeros ? leadingZeros[0].length : 0;
 
     if (contactStr.length === 10 && /^[1-9]\d{9}$/.test(contactStr)) {
-    } else if (contactStr.length === 11 && zeroCount === 1 && /^[0][1-9]\d{9}$/.test(contactStr)) {
+    } else if (
+      contactStr.length === 11 &&
+      zeroCount === 1 &&
+      /^[0][1-9]\d{9}$/.test(contactStr)
+    ) {
       contactStr = contactStr.slice(1);
-    }else{
-        return res.status(400).json({
+    } else {
+      return res.status(400).json({
         message: "Invalid contact number",
       });
     }
@@ -72,32 +92,71 @@ export const SignupController = async (req, res) => {
         role,
       });
     } else if (role === "planner") {
+      if (!price)
+        return res.status(400).json({ message: "Missing requires field" });
       newUser = await Planner.create({
         plannerName,
         email,
         password: hashedPassword,
         contactDetails,
         role,
+        price,
       });
     } else if (role === "vendor") {
-      newUser = await Vendor.create({ username, email, password: hashedPassword, contactDetails, role });
-
-      // Handle vendor services if provided
-      if (Array.isArray(servicesOffered) && servicesOffered.length > 0) {
-        const createdServices = await Promise.all(
-          servicesOffered.map(async (service) => {
-            return await Service.create({
-              type: service.type,
-              description: service.description,
-              price: service.price,
-              vendorId: newUser._id
-            });
-          })
-        );
-        newUser.servicesOffered = createdServices.map(s => s._id);
-        await newUser.save();
+      if (!price || !serviceOffered) {
+        return res.status(400).json({ message: "Missing requires field" });
       }
-    }else if (role === "admin") {
+      const validServiceOffered = [
+        "decor",
+        "makeup",
+        "food",
+        "photography",
+        "music",
+        "transport",
+        "lighting",
+        "drinks",
+        "decoration",
+        "other",
+      ];
+      if (!Array.isArray(serviceOffered)) {
+        return res
+          .status(400)
+          .json({ message: "serviceOffered must be an array" });
+      }
+
+      const isValid = serviceOffered.every((service) =>
+        validServiceOffered.includes(service)
+      );
+
+      if (!isValid) {
+        return res.status(400).json({ message: "Invalid service" });
+      }
+      newUser = await Vendor.create({
+        username,
+        email,
+        password: hashedPassword,
+        contactDetails,
+        role,
+        price,
+        servicesOffered: serviceOffered,
+      });
+
+      // // Handle vendor services if provided
+      // if (Array.isArray(servicesOffered) && servicesOffered.length > 0) {
+      //   const createdServices = await Promise.all(
+      //     servicesOffered.map(async (service) => {
+      //       return await Service.create({
+      //         type: service.type,
+      //         description: service.description,
+      //         price: service.price,
+      //         vendorId: newUser._id
+      //       });
+      //     })
+      //   );
+      //   newUser.servicesOffered = createdServices.map(s => s._id);
+      //   await newUser.save();
+      // }
+    } else if (role === "admin") {
       newUser = await Admin.create({
         adminName,
         email,
@@ -113,8 +172,8 @@ export const SignupController = async (req, res) => {
   } catch (error) {
     console.log(error, "Signup Controller Error");
     return res.status(500).json({
-      message:"Singup Controller Server Error"
-    })
+      message: "Singup Controller Server Error",
+    });
   }
 };
 
@@ -130,84 +189,68 @@ export const SigninController = async (req, res) => {
 
     let existingUser;
 
-    if (role === 'user') {
+    if (role === "user") {
       existingUser = await User.findOne({
-        $or: [
-          { username: nameoremail },
-          { email: nameoremail },
-        ],
+        $or: [{ username: nameoremail }, { email: nameoremail }],
       });
       if (!existingUser) {
         return res.status(400).json({
           message: "User does not exist",
         });
       }
-      if(existingUser.role !==role)
-      {
+      if (existingUser.role !== role) {
         return res.status(400).json({
-          message:"Not Authorized with this role"
-        })
+          message: "Not Authorized with this role",
+        });
       }
-    } 
-    else if (role === 'admin') {
+    } else if (role === "admin") {
       existingUser = await Admin.findOne({
-        $or: [
-          { adminName: nameoremail },
-          { email: nameoremail },
-        ],
+        $or: [{ adminName: nameoremail }, { email: nameoremail }],
       });
       if (!existingUser) {
         return res.status(400).json({
           message: "Admin does not exist",
         });
       }
-      if(existingUser.role !==role)
-      {
+      if (existingUser.role !== role) {
         return res.status(400).json({
-          message:"Not Authorized with this role"
-        })
+          message: "Not Authorized with this role",
+        });
       }
-    } 
-    else if (role === 'planner') {
+    } else if (role === "planner") {
       existingUser = await Planner.findOne({
-        $or: [
-          { plannerName: nameoremail },
-          { email: nameoremail },
-        ],
+        $or: [{ plannerName: nameoremail }, { email: nameoremail }],
       });
       if (!existingUser) {
         return res.status(400).json({
           message: "Planner does not exist",
         });
       }
-      if(existingUser.role !==role)
-      {
+      if (existingUser.role !== role) {
         return res.status(400).json({
-          message:"Not Authorized with this role"
-        })
+          message: "Not Authorized with this role",
+        });
       }
-    } 
-    else if (role === 'vendor') {
+    } else if (role === "vendor") {
       existingUser = await Vendor.findOne({
-        $or: [
-          { username: nameoremail },
-          { email: nameoremail },
-        ],
+        $or: [{ username: nameoremail }, { email: nameoremail }],
       });
       if (!existingUser) {
         return res.status(400).json({
           message: "Vendor does not exist",
         });
       }
-      if(existingUser.role !==role)
-      {
+      if (existingUser.role !== role) {
         return res.status(400).json({
-          message:"Not Authorized with this role"
-        })
+          message: "Not Authorized with this role",
+        });
       }
     }
 
-    const isPasswordCorrect = await bcrypt.compare(password, existingUser.password);
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      existingUser.password
+    );
     if (!isPasswordCorrect) {
       return res.status(401).json({
         message: "Invalid password",
@@ -223,14 +266,16 @@ export const SigninController = async (req, res) => {
     return res.status(200).json({
       message: "Signin successful",
       token,
-      user:{
-        id:existingUser.id,
-        role:existingUser.role,
-        email:existingUser.email,
-        name: existingUser.username || existingUser.plannerName || existingUser.adminName
-      }
+      user: {
+        id: existingUser.id,
+        role: existingUser.role,
+        email: existingUser.email,
+        name:
+          existingUser.username ||
+          existingUser.plannerName ||
+          existingUser.adminName,
+      },
     });
-
   } catch (error) {
     console.log(error.message, "SigninController error");
     return res.status(500).json({ message: "SignIN Server error" });
@@ -243,18 +288,26 @@ export const passwordReset = async (req, res) => {
     const { id, role } = req.user;
 
     if (!currentPassword || !newPassword) {
-      return res.status(400).json({ message: "Please provide both current and new passwords" });
+      return res
+        .status(400)
+        .json({ message: "Please provide both current and new passwords" });
     }
 
     if (newPassword.length < 8) {
-      return res.status(400).json({ message: "New password must be at least 8 characters long" });
+      return res
+        .status(400)
+        .json({ message: "New password must be at least 8 characters long" });
+    }
+
+    if (currentPassword === newPassword) {
+      return res.status(400).json({ message: "Choose a different password" });
     }
 
     let userModel;
-    if (role === 'user') userModel = User;
-    else if (role === 'admin') userModel = Admin;
-    else if (role === 'planner') userModel = Planner;
-    else if (role === 'vendor') userModel = Vendor;
+    if (role === "user") userModel = User;
+    else if (role === "admin") userModel = Admin;
+    else if (role === "planner") userModel = Planner;
+    else if (role === "vendor") userModel = Vendor;
     else {
       return res.status(400).json({ message: "Invalid role" });
     }
@@ -264,7 +317,10 @@ export const passwordReset = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const isPasswordCorrect = await bcrypt.compare(currentPassword, existingUser.password);
+    const isPasswordCorrect = await bcrypt.compare(
+      currentPassword,
+      existingUser.password
+    );
     if (!isPasswordCorrect) {
       return res.status(401).json({ message: "Current password is incorrect" });
     }

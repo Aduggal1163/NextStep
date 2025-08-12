@@ -12,6 +12,16 @@ const venueSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    rating: {
+        type: Number,
+        require: true,
+        min : 1,
+        max : 10,
+    },
+    description:{
+        type: String,
+        default: '',
+    }
 },{timestamps: true});
 
 export const Venue = mongoose.model('Venue', venueSchema);

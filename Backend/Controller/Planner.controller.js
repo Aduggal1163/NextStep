@@ -1,4 +1,5 @@
 import Destination from "../Models/Destination.model.js";
+import Planner from "../Models/Planner.model.js";
 import Vendor from "../Models/Vendor.model.js";
 import WeddingPlan from "../Models/WeddingPlan.model.js";
 import User from '../Models/User.model.js';
@@ -82,9 +83,9 @@ export const allUsers = async(req, res) =>{
   }
 }
 
-export const assignVendorsToUser = async (req, res) => {
+export const assignVendorsToPlanner = async (req, res) => {
   try {
-    const { userId, vendorIds } = req.body;
+    const { plannerId, vendorIds } = req.body;
     const role = req.user?.role;
 
     if (!["planner", "admin"].includes(role)) {
@@ -95,15 +96,15 @@ export const assignVendorsToUser = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    const planner = await Planner.findById(plannerId);
+    if (!planner) return res.status(404).json({ message: "Planner not found" });
 
     const vendors = await Vendor.find({ _id: { $in: vendorIds } });
     if (vendors.length !== vendorIds.length) {
       return res.status(400).json({ message: "One or more vendors not found" });
     }
 
-    const existingVendorIds = user.vendorsList.map(id => id.toString());
+    const existingVendorIds = planner.vendorsList.map(id => id.toString());
 
     const alreadyAssigned = [];
     const newlyAssigned = [];
@@ -117,14 +118,14 @@ export const assignVendorsToUser = async (req, res) => {
       }
     }
 
-    user.vendorsList.push(...newlyAssigned);
-    await user.save();
+    planner.vendorsList.push(...newlyAssigned);
+    await planner.save();
 
     return res.status(200).json({
       message: "Vendor assignment completed",
       newlyAssigned,
       alreadyAssigned,
-      finalVendorList: user.vendorsList
+      finalVendorList: planner.vendorsList
     });
 
   } catch (error) {

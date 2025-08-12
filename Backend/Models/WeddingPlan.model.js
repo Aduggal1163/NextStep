@@ -21,18 +21,14 @@ const WeddingPlanSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    vendorSelection:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref: 'Vendor',
-    },
-    guestDetails:{
-        type: [{
-            name: String,
-            relation: String,
-            contact: String
-        }],
-        default: []
-    },
+    vendorsList:[{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Vendor'
+    }],
+    guestDetails: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'guest',
+    }],
     weddingDate:{
         type: Date,
         required: true

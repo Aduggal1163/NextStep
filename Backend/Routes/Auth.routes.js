@@ -1,6 +1,12 @@
-import {Router} from "express";
-import { SignupController,SigninController } from "../Controller/Auth.controller.js";
-const router= Router();
-router.post("/signup",SignupController);
-router.post("/signin",SigninController);
+import { Router } from "express";
+import {
+  SignupController,
+  SigninController,
+  passwordReset,
+} from "../Controller/Auth.controller.js";
+import { requireSignIn } from "../Middlewares/auth.middleware.js";
+const router = Router();
+router.post("/signup", SignupController);
+router.post("/signin", SigninController);
+router.post("/resetPassword", requireSignIn, passwordReset);
 export default router;
