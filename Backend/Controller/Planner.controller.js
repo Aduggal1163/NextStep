@@ -2,7 +2,6 @@ import Destination from "../Models/Destination.model.js";
 import Planner from "../Models/Planner.model.js";
 import Vendor from "../Models/Vendor.model.js";
 import WeddingPlan from "../Models/WeddingPlan.model.js";
-import User from '../Models/User.model.js';
 
 export const createDestination = async (req, res) => {
   try {
@@ -92,7 +91,7 @@ export const assignVendorsToPlanner = async (req, res) => {
       return res.status(403).json({ message: "Unauthorized access" });
     }
 
-    if (!userId || !Array.isArray(vendorIds) || vendorIds.length === 0) {
+    if (!plannerId || !Array.isArray(vendorIds) || vendorIds.length === 0) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
